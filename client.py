@@ -40,6 +40,6 @@ print r.content
 time.sleep(1)
 
 url = 'http://127.0.0.1:5000/api/v1/send_msg'
-payload = {'phone_num': '0937954300'}
+payload = {'phone_num': '0987654321'}
 r = requests.post(url, data=json.dumps(payload), headers=headers)
 print r.content
