@@ -78,7 +78,7 @@ Parameter arg in payload should be remained even if it's empty, just like the ex
 Devices can use ```send_msg``` to send the short messages to the target phone.
 ```python
 url = 'http://127.0.0.1:5000/api/v1/send_msg'
-payload = {'phone_num': '0937954300'}
+payload = {'phone_num': '0987654321'}
 headers = {'content-type': 'application/json'}
 r = requests.post(url, data=json.dumps(payload), headers=headers)
 print r.content
@@ -166,7 +166,7 @@ print r.content
 裝置可以藉由```send_msg```傳送簡訊至目標手機.
 ```python
 url = 'http://127.0.0.1:5000/api/v1/send_msg'
-payload = {'phone_num': '0937954300'}
+payload = {'phone_num': '0987654321'}
 headers = {'content-type': 'application/json'}
 r = requests.post(url, data=json.dumps(payload), headers=headers)
 print r.content
