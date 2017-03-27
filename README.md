@@ -38,7 +38,7 @@ Also, remember to change the username and password of SMS in ```const.py``` if y
 
 ### Example of using APIs
 Make sure that you use post to make every requests, and follow the data type of example.  
-Here I use ```requests``` to demonstrate how to use the APIs, You can see them in ```client.py```.  
+Here I use ```requests``` to demonstrate how to use the APIs, You can also see them in ```client.py```.  
 First, you need to import ```requests```:
 ```python
 import requests
