@@ -56,7 +56,7 @@ def do_query():
 def send_msg():
 	info = request.get_json(silent=True)
 	phone_num = info["phone_num"]
-	return sms.sendMsg(phone_num, u"TEST")
+	return sms.sendMsg(phone_num, u"您的家人在找您")
 
 def insert_db(device_id, lng, lat):
 	with lock:
@@ -89,17 +89,14 @@ def close_connection():
 	db.close()
 
 if __name__ == '__main__':
-	try:
-		logging.basicConfig(filename="sever.log", level=logging.INFO, format='[%(levelname)s] %(asctime)s - %(message)s')
-		db = init_db()
-		lock = Lock()
-		sms = kotsms.kotsms()
-		sms.login(const.SMS_USERNAME, const.SMS_PASSWORD)
-		app.run( 
-			host=const.HOST,
-			port=const.PORT,
-			threaded=True
-		)
-		close_connection()
-	except:
-		close_connection()
+	logging.basicConfig(filename="sever.log", level=logging.INFO, format='[%(levelname)s] %(asctime)s - %(message)s')
+	db = init_db()
+	lock = Lock()
+	sms = kotsms.kotsms()
+	sms.login(const.SMS_USERNAME, const.SMS_PASSWORD)
+	app.run( 
+		host=const.HOST,
+		port=const.PORT,
+		threaded=True
+	)
+	close_connection()
