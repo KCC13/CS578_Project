@@ -31,7 +31,7 @@ def get_pos():
 	try:
 		info = request.get_json(silent=True)
 		device_id = info["device_id"]
-		coord = query_db("SELECT lng, lat FROM records WHERE device_id = %d ORDER BY saved_time DESC", [device_id])[0]
+		coord = query_db("SELECT lng, lat FROM records WHERE device_id = ? ORDER BY saved_time DESC", [device_id])[0]
 		if coord is not None:
 			return jsonify({'lng': coord[0], 'lat': coord[1]})
 		else:
@@ -63,7 +63,7 @@ def send_msg():
 
 def insert_db(device_id, lng, lat):
 	with lock:
-		db.execute("INSERT INTO records (device_id, lng, lat) VALUES (%d, %100.6f, %100.6f)", (device_id, lng, lat))
+		db.execute("INSERT INTO records (device_id, lng, lat) VALUES (?, ?, ?)", (device_id, lng, lat))
 
 def query_db(query, args=()):
 	with lock:
