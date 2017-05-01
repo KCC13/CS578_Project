@@ -21,7 +21,7 @@ def add_pos():
 		device_id = info["device_id"]
 		lng = info["lng"]
 		lat = info["lat"]
-		insert_db(device_id, lng, lat)
+		insert_gps(device_id, lng, lat)
 		return "Sucess."
 	except:
 		return "Fail."
@@ -31,9 +31,39 @@ def get_pos():
 	try:
 		info = request.get_json(silent=True)
 		device_id = info["device_id"]
-		coord = query_db("SELECT lng, lat FROM records WHERE device_id = ? ORDER BY saved_time DESC", [device_id])[0]
+		coord = query_db("SELECT lng, lat FROM gps_records WHERE device_id = ? ORDER BY saved_time DESC", [device_id])[0]
 		if coord is not None:
 			return jsonify({'lng': coord[0], 'lat': coord[1]})
+		else:
+			return "No record found."
+	except:
+		return "Bad request."
+
+@app.route('/api/v1/add_call', methods=['POST'])
+def add_call():
+	try:
+		info = request.get_json(silent=True)
+		device_id = info["device_id"]
+		phone_num = info["phone_num"]
+		called_time = info["called_time"]
+		insert_call(device_id, phone_num, called_time)
+		return "Sucess."
+	except:
+		return "Fail."
+
+@app.route('/api/v1/get_call', methods=['POST'])
+def get_call():
+	try:
+		info = request.get_json(silent=True)
+		device_id = info["device_id"]
+		calls = query_db("SELECT phone_num, called_time FROM phonecall_records WHERE device_id = ? ORDER BY saved_time DESC", [device_id])
+		if calls is not None:
+			nums = []
+			times = []
+			for call in calls:
+				nums.append(call[0])
+				times.append(call[1])
+			return jsonify({'phone_num': nums, 'called_time': times})
 		else:
 			return "No record found."
 	except:
@@ -61,9 +91,13 @@ def send_msg():
 	except:
 		return "Bad request."
 
-def insert_db(device_id, lng, lat):
+def insert_gps(device_id, lng, lat):
 	with lock:
-		db.execute("INSERT INTO records (device_id, lng, lat) VALUES (?, ?, ?)", (device_id, lng, lat))
+		db.execute("INSERT INTO gps_records (device_id, lng, lat) VALUES (?, ?, ?)", (device_id, lng, lat))
+
+def insert_call(device_id, phone_num, called_time):
+	with lock:
+		db.execute("INSERT INTO phonecall_records (device_id, phone_num, called_time) VALUES (?, ?, ?)", (device_id, phone_num, called_time))
 
 def query_db(query, args=()):
 	with lock:
