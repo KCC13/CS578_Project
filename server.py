@@ -31,9 +31,40 @@ def get_pos():
 	try:
 		info = request.get_json(silent=True)
 		device_id = info["device_id"]
-		coord = query_db("SELECT lng, lat FROM gps_records WHERE device_id = ? ORDER BY saved_time DESC", [device_id])[0]
+		coord = query_db("SELECT lng, lat, saved_time FROM gps_records WHERE device_id = ? ORDER BY saved_time DESC", [device_id])[0]
 		if coord is not None:
-			return jsonify({'lng': coord[0], 'lat': coord[1]})
+			return jsonify({'lng': coord[0], 'lat': coord[1], "time":coord[2]})
+		else:
+			return "No record found."
+	except:
+		return "Bad request."
+
+@app.route('/api/v1/get_2_pos', methods=['POST'])
+def get_2_pos():
+	try:
+		info = request.get_json(silent=True)
+		device_id = info["device_id"]
+		coords = query_db("SELECT lng, lat, saved_time FROM gps_records WHERE device_id = ? ORDER BY saved_time DESC", [device_id])
+		if coords is not None:
+			if len(coords) >= 2:
+				return jsonify({'lng_new': coords[0][0], 'lat_new': coords[0][1], 'time_new': coords[0][2], 'lng_old' : coords[1][0], 'lat_old' : coords[1][1], 'time_old': coords[1][2]})
+			else:
+				return jsonify({'lng_new': coords[0][0], 'lat_new': coords[0][1], 'time_new': coords[0][2], 'lng_old' : coords[0][0], 'lat_old' : coords[0][1], 'time_old': coords[0][2]})
+		else:
+			return "No record found."
+	except:
+		return "Bad request."
+
+@app.route('/api/v1/get_all_pos', methods=['POST'])
+def get_all_pos():
+	try:
+		info = request.get_json(silent=True)
+		device_id = info["device_id"]
+		coords = query_db("SELECT lng, lat, saved_time FROM gps_records WHERE device_id = ? ORDER BY saved_time DESC", [device_id])
+		if coords is not None:
+			history = [{"lng": coord[0], "lat": coord[1], "time":coord[2]} for coord in coords]
+			return jsonify(history)
+
 		else:
 			return "No record found."
 	except:
