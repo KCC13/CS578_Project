@@ -6,15 +6,59 @@ import kotsms
 import const
 import logging
 from threading import Lock
-from flask import Flask, request, jsonify
+from datetime import timedelta
+from flask import Flask, request, jsonify, make_response, current_app
+from functools import update_wrapper
 
 app = Flask(__name__)
+
+def crossdomain(origin=None, methods=None, headers=None,
+                max_age=21600, attach_to_all=True,
+                automatic_options=True):
+    if methods is not None:
+        methods = ', '.join(sorted(x.upper() for x in methods))
+    if headers is not None and not isinstance(headers, basestring):
+        headers = ', '.join(x.upper() for x in headers)
+    if not isinstance(origin, basestring):
+        origin = ', '.join(origin)
+    if isinstance(max_age, timedelta):
+        max_age = max_age.total_seconds()
+
+    def get_methods():
+        if methods is not None:
+            return methods
+
+        options_resp = current_app.make_default_options_response()
+        return options_resp.headers['allow']
+
+    def decorator(f):
+        def wrapped_function(*args, **kwargs):
+            if automatic_options and request.method == 'OPTIONS':
+                resp = current_app.make_default_options_response()
+            else:
+                resp = make_response(f(*args, **kwargs))
+            if not attach_to_all and request.method != 'OPTIONS':
+                return resp
+
+            h = resp.headers
+
+            h['Access-Control-Allow-Origin'] = origin
+            h['Access-Control-Allow-Methods'] = get_methods()
+            h['Access-Control-Max-Age'] = str(max_age)
+            if headers is not None:
+                h['Access-Control-Allow-Headers'] = headers
+            return resp
+
+        f.provide_automatic_options = False
+        return update_wrapper(wrapped_function, f)
+    return decorator
 
 @app.route('/')
 def hello_world():
     return 'Nothing here, get out!'
 
 @app.route('/api/v1/add_pos', methods=['POST'])
+@crossdomain(origin='*')
 def add_pos():
 	try:
 		info = request.get_json(silent=True)
@@ -26,7 +70,8 @@ def add_pos():
 	except:
 		return "Fail."
 
-@app.route('/api/v1/get_pos', methods=['POST'])
+@app.route('/api/v1/get_pos', methods=['POST', 'OPTIONS'])
+@crossdomain(origin='*', headers=const.headers)
 def get_pos():
 	try:
 		info = request.get_json(silent=True)
@@ -36,10 +81,12 @@ def get_pos():
 			return jsonify({'lng': coord[0], 'lat': coord[1], "time":coord[2]})
 		else:
 			return "No record found."
-	except:
+	except Exception,e:
+		print str(e)
 		return "Bad request."
 
-@app.route('/api/v1/get_2_pos', methods=['POST'])
+@app.route('/api/v1/get_2_pos', methods=['POST', 'OPTIONS'])
+@crossdomain(origin='*', headers=const.headers)
 def get_2_pos():
 	try:
 		info = request.get_json(silent=True)
@@ -55,7 +102,8 @@ def get_2_pos():
 	except:
 		return "Bad request."
 
-@app.route('/api/v1/get_all_pos', methods=['POST'])
+@app.route('/api/v1/get_all_pos', methods=['POST', 'OPTIONS'])
+@crossdomain(origin='*', headers=const.headers)
 def get_all_pos():
 	try:
 		info = request.get_json(silent=True)
@@ -82,19 +130,17 @@ def add_call():
 	except:
 		return "Fail."
 
-@app.route('/api/v1/get_call', methods=['POST'])
+@app.route('/api/v1/get_call', methods=['POST', 'OPTIONS'])
+@crossdomain(origin='*', headers=const.headers)
 def get_call():
 	try:
 		info = request.get_json(silent=True)
 		device_id = info["device_id"]
 		calls = query_db("SELECT phone_num, called_time FROM phonecall_records WHERE device_id = ? ORDER BY saved_time DESC", [device_id])
 		if calls is not None:
-			nums = []
-			times = []
-			for call in calls:
-				nums.append(call[0])
-				times.append(call[1])
-			return jsonify({'phone_num': nums, 'called_time': times})
+			history = [{"phone_num": call[0], "called_time": call[1]} for call in calls]
+			print history
+			return jsonify(history)
 		else:
 			return "No record found."
 	except:
