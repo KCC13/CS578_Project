@@ -67,7 +67,8 @@ def add_pos():
 		lat = info["lat"]
 		insert_gps(device_id, lng, lat)
 		return "Sucess."
-	except:
+	except Exception,e:
+		logging.error(str(e))
 		return "Fail."
 
 @app.route('/api/v1/get_pos', methods=['POST', 'OPTIONS'])
@@ -82,7 +83,7 @@ def get_pos():
 		else:
 			return "No record found."
 	except Exception,e:
-		print str(e)
+		logging.error(str(e))
 		return "Bad request."
 
 @app.route('/api/v1/get_2_pos', methods=['POST', 'OPTIONS'])
@@ -99,7 +100,8 @@ def get_2_pos():
 				return jsonify({'lng_new': coords[0][0], 'lat_new': coords[0][1], 'time_new': coords[0][2], 'lng_old' : coords[0][0], 'lat_old' : coords[0][1], 'time_old': coords[0][2]})
 		else:
 			return "No record found."
-	except:
+	except Exception,e:
+		logging.error(str(e))
 		return "Bad request."
 
 @app.route('/api/v1/get_all_pos', methods=['POST', 'OPTIONS'])
@@ -115,7 +117,8 @@ def get_all_pos():
 
 		else:
 			return "No record found."
-	except:
+	except Exception,e:
+		logging.error(str(e))
 		return "Bad request."
 
 @app.route('/api/v1/add_call', methods=['POST'])
@@ -127,7 +130,9 @@ def add_call():
 		called_time = info["called_time"]
 		insert_call(device_id, phone_num, called_time)
 		return "Sucess."
-	except:
+	except Exception,e:
+		print str(e)
+		logging.error(str(e))
 		return "Fail."
 
 @app.route('/api/v1/get_call', methods=['POST', 'OPTIONS'])
@@ -139,11 +144,42 @@ def get_call():
 		calls = query_db("SELECT phone_num, called_time FROM phonecall_records WHERE device_id = ? ORDER BY saved_time DESC", [device_id])
 		if calls is not None:
 			history = [{"phone_num": call[0], "called_time": call[1]} for call in calls]
-			print history
 			return jsonify(history)
 		else:
 			return "No record found."
-	except:
+	except Exception as e:
+		print str(e)
+		logging.error(str(e))
+		return "Bad request."
+
+@app.route('/api/v1/add_bettary', methods=['POST'])
+def add_bettary():
+	try:
+		info = request.get_json(silent=True)
+		device_id = info["device_id"]
+		bettary = info["bettary"]
+		insert_bettary(device_id, bettary)
+		return "Sucess."
+	except Exception,e:
+		print str(e)
+		logging.error(str(e))
+		return "Fail."
+
+@app.route('/api/v1/get_bettary', methods=['POST', 'OPTIONS'])
+@crossdomain(origin='*', headers=const.headers)
+def get_bettary():
+	try:
+		info = request.get_json(silent=True)
+		device_id = info["device_id"]
+		bettary = query_db("SELECT bettary FROM bettary_records WHERE device_id = ?", [device_id])[0]
+		if bettary is not None:
+			history = {"bettary": bettary[0]}
+			return jsonify(history)
+		else:
+			return "No record found."
+	except Exception as e:
+		print str(e)
+		logging.error(str(e))
 		return "Bad request."
 
 @app.route('/api/v1/do_query', methods=['POST'])
@@ -154,7 +190,8 @@ def do_query():
 			query = info['query']
 			args = info['args']
 			return jsonify(query_db(query, args))
-		except:
+		except Exception,e:
+			logging.error(str(e))
 			return 'Bad request.'
 	else:
 		return 'Localhost only.'
@@ -165,7 +202,8 @@ def send_msg():
 		info = request.get_json(silent=True)
 		phone_num = info["phone_num"]
 		return sms.sendMsg(phone_num, u"您的家人在找您")
-	except:
+	except Exception,e:
+		logging.error(str(e))
 		return "Bad request."
 
 def insert_gps(device_id, lng, lat):
@@ -175,6 +213,10 @@ def insert_gps(device_id, lng, lat):
 def insert_call(device_id, phone_num, called_time):
 	with lock:
 		db.execute("INSERT INTO phonecall_records (device_id, phone_num, called_time) VALUES (?, ?, ?)", (device_id, phone_num, called_time))
+
+def insert_bettary(device_id, bettary):
+	with lock:		
+		db.execute("REPLACE INTO bettary_records (device_id, bettary) VALUES (?, ?)", (device_id, bettary))
 
 def query_db(query, args=()):
 	with lock:
