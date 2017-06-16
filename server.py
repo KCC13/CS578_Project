@@ -127,8 +127,9 @@ def add_call():
 		info = request.get_json(silent=True)
 		device_id = info["device_id"]
 		phone_num = info["phone_num"]
+		called_to = info["called_to"]
 		called_time = info["called_time"]
-		insert_call(device_id, phone_num, called_time)
+		insert_call(device_id, phone_num, called_to, called_time)
 		return "Sucess."
 	except Exception,e:
 		print str(e)
@@ -141,9 +142,9 @@ def get_call():
 	try:
 		info = request.get_json(silent=True)
 		device_id = info["device_id"]
-		calls = query_db("SELECT phone_num, called_time FROM phonecall_records WHERE device_id = ? ORDER BY saved_time DESC", [device_id])
+		calls = query_db("SELECT phone_num, called_to, called_time FROM phonecall_records WHERE device_id = ? ORDER BY saved_time DESC", [device_id])
 		if calls is not None:
-			history = [{"phone_num": call[0], "called_time": call[1]} for call in calls]
+			history = [{"phone_num": call[0], "called_to": call[1], "called_time": call[2]} for call in calls]
 			return jsonify(history)
 		else:
 			return "No record found."
@@ -210,9 +211,9 @@ def insert_gps(device_id, lng, lat):
 	with lock:
 		db.execute("INSERT INTO gps_records (device_id, lng, lat) VALUES (?, ?, ?)", (device_id, lng, lat))
 
-def insert_call(device_id, phone_num, called_time):
+def insert_call(device_id, phone_num, called_to, called_time):
 	with lock:
-		db.execute("INSERT INTO phonecall_records (device_id, phone_num, called_time) VALUES (?, ?, ?)", (device_id, phone_num, called_time))
+		db.execute("INSERT INTO phonecall_records (device_id, phone_num, called_to, called_time) VALUES (?, ?, ?, ?)", (device_id, phone_num, called_to, called_time))
 
 def insert_bettary(device_id, bettary):
 	with lock:		
