@@ -4,7 +4,7 @@
 [中文簡介](#簡介)
 
 ## Introduction
-A simple server made by flask+sqlite3, support multithreading
+A simple API server made by flask+sqlite3, support multithreading
 ### Prerequisites
 ```
 python 2.7
@@ -93,7 +93,7 @@ This project is licensed under the MIT License
 
 
 ## 簡介
-一個以flask+sqlite3做的簡易server，支援multithreading
+一個以flask+sqlite3做的簡易API server，支援multithreading
 
 ### 需要環境
 ```
@@ -101,7 +101,7 @@ python 2.7
 flask
 requests
 ```
-```requests```在此只是拿來測試api用，並非必要
+```requests```在此只是拿來測試API用，並非必要
 
 ### 安裝
 
